@@ -1,0 +1,67 @@
+#!/bin/sh
+
+CWD=`pwd`
+WORKDIR=sandbox
+DISTDIR=distfiles
+RELEASE="5.4"
+SHORTRELEASE="54"
+SRCDIR=/usr/src
+
+BASE_URL=http://ftp.nluug.nl/OpenBSD/${RELEASE}
+
+echo "Cleaning up previous build"
+if [ -d ${WORKDIR} ]; then
+  rm -rf ${WORKDIR}
+fi
+
+mkdir -p ${CWD}/${WORKDIR}
+mkdir -p ${CWD}/${DISTDIR}
+
+binfiles="base${SHORTRELEASE}.tgz
+etc${SHORTRELEASE}.tgz
+comp${SHORTRELEASE}.tgz
+man${SHORTRELEASE}.tgz"
+
+srcfiles="src.tar.gz
+sys.tar.gz"
+
+
+echo "Retrieving binary releases"
+cd ${CWD}/${DISTDIR}
+for file in ${binfiles}; do
+  if [ ! -f ${file} ] ; then
+    echo "Needed ${file}, didn't find it in current dir so downloading.."
+    ftp ${BASE_URL}/`machine`/${file}
+  fi
+done
+
+echo "Retrieving source..."
+for file in ${srcfiles}; do
+  if [ ! -f ${file} ] ; then
+    echo "Needed ${file}, didn't find it in current dir so downloading.."
+    ftp ${BASE_URL}/${file}
+  fi
+done
+
+for file in ${binfiles}; do
+  echo "checking ${file} file integrity"
+  gunzip -t ${file}
+  if [ $? != 0 ] ; then
+    echo "${file} is corrupt! Exiting"
+    exit
+  fi
+  echo "file integrity OK, extracting ${file} to ${WORKDIR}"
+  tar zxpf ${file} -C ${CWD}/${WORKDIR}
+done
+
+for file in ${srcfiles}; do
+  echo "checking ${file} file integrity"
+  gunzip -t ${file}
+  if [ $? != 0 ] ; then
+    echo "${file} is corrupt! Exiting"
+    exit
+  fi
+    echo "file integrity OK, extracting ${file} to ${WORKDIR}"
+    tar zxpf ${file} -C ${SRCDIR}
+done
+
