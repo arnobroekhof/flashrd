@@ -1,0 +1,30 @@
+#!/bin/sh
+
+CWD=`pwd`
+WORKDIR=sandbox
+
+if ! [ -d ${CWD}/${WORKDIR}/dev ]; then
+echo "You have no sandbox to play with yet. Run ./prepare"
+  exit
+fi
+
+echo "Setting up environment.."
+
+cp ${CWD}/${WORKDIR}/dev/MAKEDEV ${CWD}/
+mount_mfs -o nosuid -s 32768 swap ${CWD}/${WORKDIR}/dev
+cp -p ${CWD}/MAKEDEV ${CWD}/${WORKDIR}/dev/MAKEDEV
+cd ${CWD}/${WORKDIR}/dev
+./MAKEDEV std
+echo "Going into the sandbox to take a look.."
+/usr/sbin/chroot ${CWD}/${WORKDIR} /bin/ksh
+
+sleep 3
+cd
+rm -rf ${CWD}/${WORKDIR}/dev/*
+umount ${CWD}/${WORKDIR}/dev
+cp -p ${CWD}/MAKEDEV ${CWD}/${WORKDIR}/dev/MAKEDEV
+rm -f ${CWD}/MAKEDEV
+
+echo "We are no longer in the sandbox!"
+
+exit
