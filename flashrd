@@ -16,7 +16,7 @@ device=vnd3				# least likely to conflict ?
 rootdevice=vnd2				# used to mount flash vnd for writing of stuff inside
 blocks=4600				# blocks to reserve for kernel ramdisk
 rdroot=rd.$arch-$date			# ramdisk root fs image
-dest=flashimg.$arch-$date		# final product
+dest=flashimg.$arch-$date.img		# final product
 
 # See ./etc/rc.flashrd.sub to define tardirs, vnddirs, mfsdirs
 #
