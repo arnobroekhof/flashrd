@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "saving tardirs"
+. /etc/rc.flashrd.shutdown

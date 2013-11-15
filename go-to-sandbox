@@ -10,6 +10,7 @@ fi
 
 echo "Setting up environment.."
 
+cp /etc/resolv.conf ${CWD}/${WORKDIR}/etc/resolv.conf
 cp ${CWD}/${WORKDIR}/dev/MAKEDEV ${CWD}/
 mount_mfs -o nosuid -s 32768 swap ${CWD}/${WORKDIR}/dev
 cp -p ${CWD}/MAKEDEV ${CWD}/${WORKDIR}/dev/MAKEDEV
@@ -24,6 +25,7 @@ rm -rf ${CWD}/${WORKDIR}/dev/*
 umount ${CWD}/${WORKDIR}/dev
 cp -p ${CWD}/MAKEDEV ${CWD}/${WORKDIR}/dev/MAKEDEV
 rm -f ${CWD}/MAKEDEV
+rm -f {CWD}/${WORKDIR}/etc/resolv.conf
 
 echo "We are no longer in the sandbox!"
 

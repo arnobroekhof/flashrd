@@ -30,4 +30,4 @@ tardirs="var"
 set -A tarsize  131072                  # mfs sizes for tar dirs
 #
 # If you want to save all "tardirs" contents on shutdown:
-# savetardirs="$tardirs"
+savetardirs="$tardirs"
