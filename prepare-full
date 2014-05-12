@@ -3,8 +3,8 @@
 CWD=`pwd`
 WORKDIR=sandbox
 DISTDIR=distfiles
-RELEASE="5.4"
-SHORTRELEASE="54"
+RELEASE="5.5"
+SHORTRELEASE="55"
 SRCDIR=/usr/src
 
 BASE_URL=http://ftp.nluug.nl/OpenBSD/${RELEASE}
