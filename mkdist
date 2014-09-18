@@ -11,9 +11,6 @@ if [ -z "$vnddirs" ]; then
  echo vnddirs not specified, aborting
  exit 1
 fi
-if [ -z "$device" ]; then
- device=vnd0
-fi
 
 if [ -z "$1" -a -z "$distloc" ]; then
  echo "% mkdist <openbsd base>"
@@ -105,6 +102,8 @@ tabname=`printf "%.8s" $random`
 
 . ./flashrd.sub
 
+[ -z "$device" ] && getavailvnd 1 && device=${vndevices[0]}
+
 tmplabel=$(c 0 mktemp -t mkdistlabel.XXXXXX)
 tmpmntdir=$(c 0 mktemp -t -d mkdist.XXXXXX)
 [ -z "$tmpmnt" ] && tmpmnt=$(c 0 mktemp -t -d vnd.XXXXXX)
@@ -126,7 +125,7 @@ for i in $vnddirs; do
 
  echo -n Analyzing /$i
 
- set -- $(du -s $distloc/$i)
+ set -- $(c 0 du -s $distloc/$i)
  size=$1
 
  # du outputs 512 byte blocks
@@ -209,6 +208,8 @@ c 1 mv /etc/disktab.${tabname} /etc/disktab
 
 x=0
 
+resolv=$TMPDIR/resolv.conf
+
 for i in $vnddirs; do
  echo -n Finalizing /$i
 
@@ -218,7 +219,17 @@ for i in $vnddirs; do
  c 1 mount /dev/${device}${part[$x]} $tmpmntdir
 
  echo -n " copy"
- c 2 tar cf - -C $distloc/$i . | tar xpf - -C $tmpmntdir
+ c 2 tar cf - -C $distloc/$i . | c 2 tar xpf - -C $tmpmntdir
+
+ if [ $i == etc ]; then
+  for zz in $tardirs; do
+   if [ $zz == var ]; then
+    echo -n " (resolv.conf)"
+    [ -f ${tmpmntdir}/resolv.conf ] && c 2 mv ${tmpmntdir}/resolv.conf ${resolv}
+    c 2 ln -s /var/db/resolv.conf ${tmpmntdir}
+   fi
+  done
+ fi
 
  umountwait 1 $tmpmntdir
 
@@ -236,18 +247,26 @@ if [ ! -z "$tardirs" ]; then
  for i in $tardirs; do
   echo -n Creating $i.tar
 
-  set -- `du -s $distloc/$i`
+  set -- $(c 0 du -s $distloc/$i)
   size=$1
   if [ `sectors2mbytes $size` -ge 1 ]; then
    echo -n " `sectors2mbytes $size`"MB files
   else
-   echo -n " $((size)) sectors of files ($bytessec bytes/sector)"
+   echo -n " $((size)) sectors ($bytessec bytes/sector)"
   fi
 
   echo -n " copy"
-  c 0 tar cf $tmpmnt/$i.tar -C $distloc/$i .
-
+  if [ $i == var -a -f $resolv ]; then
+   echo -n " (resolv.conf)"
+   c 0 cp -Rp $distloc/$i $TMPDIR/var-copy
+   c 0 mkdir -p $TMPDIR/var-copy/db
+   c 0 cp -p ${resolv} $TMPDIR/var-copy/db/resolv.conf
+   c 0 tar cf $tmpmnt/$i.tar -C $TMPDIR/var-copy .
+  else
+   c 0 tar cf $tmpmnt/$i.tar -C $distloc/$i .
+  fi
   echo
+
  done
 fi
 
