@@ -6,8 +6,10 @@ DISTDIR=distfiles
 RELEASE="5.6"
 SHORTRELEASE="56"
 SRCDIR=/usr/src
+TMPDIR=/tmp
 
 BASE_URL=http://ftp.nluug.nl/OpenBSD/${RELEASE}
+PATCH_URL=http://ftp.openbsd.org/pub/OpenBSD/patches/${RELEASE}.tar.gz
 
 echo "Cleaning up previous build"
 if [ -d ${WORKDIR} ]; then
@@ -71,3 +73,17 @@ for file in ${srcfiles}; do
     tar zxpf ${file} -C ${SRCDIR}
 done
 
+echo "Retrieving patch file"
+cd ${TMPDIR}
+ftp ${PATCH_URL}
+tar zxpf ${RELEASE}.tar.gz
+cd ${RELEASE}/common
+for file in `ls *.sig`; do 
+  echo "executing patch from file ${file}"
+  signify -Vep /etc/signify/openbsd-${SHORTRELEASE}-base.pub -x ${file} -m - | \
+    (cd /usr/src && patch -p0)
+  cd ${TMPDIR}/${RELEASE}/common
+done
+
+echo "to create changes type: ./go-to-sandbox"
+echo "to start building type: ./flashrd ${CWD}/{WORKDIR}"
