@@ -29,7 +29,6 @@ xfont${SHORTRELEASE}.tgz"
 srcfiles="src.tar.gz
 sys.tar.gz"
 
-
 echo "Retrieving binary releases"
 cd ${CWD}/${DISTDIR}
 for file in ${binfiles}; do
@@ -47,9 +46,12 @@ for file in ${srcfiles}; do
   fi
 done
 
+echo "Retrieving file checksum"
+ftp ${BASE_URL}/`machine`/SHA256
+
 for file in ${binfiles}; do
   echo "checking ${file} file integrity"
-  gunzip -t ${file}
+  sha256 -C SHA256 ${file}
   if [ $? != 0 ] ; then
     echo "${file} is corrupt! Exiting"
     exit
@@ -58,14 +60,17 @@ for file in ${binfiles}; do
   tar zxpf ${file} -C ${CWD}/${WORKDIR}
 done
 
+echo "Retrieving file checksum"
+ftp ${BASE_URL}/SHA256
+
 for file in ${srcfiles}; do
   echo "checking ${file} file integrity"
-  gunzip -t ${file}
+  sha256 -C SHA256 ${file}
   if [ $? != 0 ] ; then
     echo "${file} is corrupt! Exiting"
     exit
   fi
-    echo "file integrity OK, extracting ${file} to ${WORKDIR}"
+    echo "file integrity OK, extracting ${file} to ${SRCDIR}"
     tar zxpf ${file} -C ${SRCDIR}
 done
 
