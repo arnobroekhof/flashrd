@@ -20,7 +20,6 @@ mkdir -p ${CWD}/${WORKDIR}
 mkdir -p ${CWD}/${DISTDIR}
 
 binfiles="base${SHORTRELEASE}.tgz
-etc${SHORTRELEASE}.tgz
 comp${SHORTRELEASE}.tgz
 man${SHORTRELEASE}.tgz"
 
@@ -86,4 +85,4 @@ for file in `ls *.sig`; do
 done
 
 echo "to create changes type: ./go-to-sandbox"
-echo "to start building type: ./flashrd ${CWD}/{WORKDIR}"
+echo "to start building type: ./flashrd ${CWD}/${WORKDIR}"
