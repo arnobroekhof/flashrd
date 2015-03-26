@@ -18,12 +18,11 @@ mkdir -p ${CWD}/${WORKDIR}
 mkdir -p ${CWD}/${DISTDIR}
 
 binfiles="base${SHORTRELEASE}.tgz
-etc${SHORTRELEASE}.tgz
 comp${SHORTRELEASE}.tgz
 man${SHORTRELEASE}.tgz
 xbase${SHORTRELEASE}.tgz
-xetc${SHORTRELEASE}.tgz
 xshare${SHORTRELEASE}.tgz
+xserv${SHORTRELEASE}.tgz
 xfont${SHORTRELEASE}.tgz"
 
 srcfiles="src.tar.gz
