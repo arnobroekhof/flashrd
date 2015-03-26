@@ -3,8 +3,8 @@
 CWD=`pwd`
 WORKDIR=sandbox
 DISTDIR=distfiles
-RELEASE="5.6"
-SHORTRELEASE="56"
+RELEASE="5.7"
+SHORTRELEASE="57"
 SRCDIR=/usr/src
 TMPDIR=/tmp
 
