@@ -71,10 +71,7 @@ if [ "$uname" != "OpenBSD" -a "$uname" != "Bitrig" ]; then
  exit 1
 fi
 
-if [ `id -u` != 0 ]; then
- echo Sorry, mount, vnconfig, and friends require root privileges
- exit 1
-fi
+[ `id -u` != 0 ] && echo root required && exit 1
 
 syntax()
 {
@@ -233,7 +230,7 @@ fi
 
 c 1 mount -o rdonly /dev/"$rootdevice"a $OldDir
 
-offset=64
+offset=$((4*1024*1024/${bytessec}))
 asize=$((totalsize - offset))
 
 echo "vnd-${tabname}:\\" > $NewLabel
@@ -292,9 +289,9 @@ c 4 installboot -r $NewDir $device $distloc/usr/mdec/biosboot $distloc/usr/mdec/
 echo
 echo Generate initial random seeds...
 c 4 "mkdir -p $NewDir/etc"
-c 4 "dd if=/dev/random of=$NewDir/etc/random.seed bs=512 count=1 > /dev/null 2>&1"
+c 4 "dd if=/dev/random of=$NewDir/etc/random.seed bs=512 count=1 status=none"
 c 4 chmod 600 $NewDir/etc/random.seed
-c 4 "dd if=/dev/random of=$NewDir/etc/host.random bs=512 count=1 > /dev/null 2>&1"
+c 4 "dd if=/dev/random of=$NewDir/etc/host.random bs=65536 count=1 status=none"
 c 4 chmod 600 $NewDir/etc/host.random
 
 echo

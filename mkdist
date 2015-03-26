@@ -26,9 +26,15 @@ if [ ! -d "$distloc" ]; then
  echo % $distloc is not a directory
  exit 1
 else
- if [ ! -f "$distloc"/etc/services ]; then
-  echo % $distloc does not contain an unpacked etcXX.tgz file
-  exit 1
+ if [ ! -f $distloc/.profile ]; then
+  if [ -f $distloc/usr/share/sysmerge/etc.tgz ]; then
+   echo % "$distloc/usr/share/sysmerge/etc.tgz must be unpacked under $distloc"
+   echo % "(such as: tar xzpf $distloc/usr/share/sysmerge/etc.tgz -C $distloc)"
+   exit 1
+  else
+   echo % $distloc does not contain an unpacked etcXX.tgz file
+   exit 1
+  fi
  fi
  if [ ! -f "$distloc"/bin/ksh ]; then
   echo % $distloc does not contain an unpacked baseXX.tgz file
@@ -222,13 +228,37 @@ for i in $vnddirs; do
  c 2 tar cf - -C $distloc/$i . | c 2 tar xpf - -C $tmpmntdir
 
  if [ $i == etc ]; then
+
+  # US/Pacific by default for flashrd!
+  ln -fs /usr/share/zoneinfo/US/Pacific ${tmpmntdir}/localtime
+  # random.seed rests at /flash/etc/random.seed
+  ln -fs /flash/etc/random.seed ${tmpmntdir}/random.seed
+
+  if [ ! -f ${tmpmntdir}/myname ]; then
+   # No name? Let's call it 'flashrd' for now...
+   c 2 echo flashrd > ${tmpmntdir}/myname
+
+   if [ -f ${tmpmntdir}/hosts ]; then
+    # Add 'flashrd' to the hosts file
+    c 2 sed -e 's/localhost/localhost flashrd/' < ${tmpmntdir}/hosts > ${tmpmntdir}/hosts.new
+    c 2 mv ${tmpmntdir}/hosts.new ${tmpmntdir}/hosts
+   else
+    # Create a basic hosts file
+    c 2 echo "127.0.0.1	localhost flashrd" > ${tmpmntdir}/hosts
+    c 2 echo "::1	localhost flashrd" >> ${tmpmntdir}/hosts
+   fi
+
+  fi
+
   for zz in $tardirs; do
    if [ $zz == var ]; then
+    # If /var is temporal, we want to move resolv.conf to it and static link
     echo -n " (resolv.conf)"
     [ -f ${tmpmntdir}/resolv.conf ] && c 2 mv ${tmpmntdir}/resolv.conf ${resolv}
     c 2 ln -s /var/db/resolv.conf ${tmpmntdir}
    fi
   done
+
  fi
 
  umountwait 1 $tmpmntdir
@@ -256,12 +286,16 @@ if [ ! -z "$tardirs" ]; then
   fi
 
   echo -n " copy"
-  if [ $i == var -a -f $resolv ]; then
-   echo -n " (resolv.conf)"
-   c 0 cp -Rp $distloc/$i $TMPDIR/var-copy
-   c 0 mkdir -p $TMPDIR/var-copy/db
-   c 0 cp -p ${resolv} $TMPDIR/var-copy/db/resolv.conf
-   c 0 tar cf $tmpmnt/$i.tar -C $TMPDIR/var-copy .
+  if [ $i == var ]; then
+  c 0 cp -Rp $distloc/$i $TMPDIR/var-copy
+  c 0 mkdir -p $TMPDIR/var-copy/db
+   if [ -f $resolv ]; then
+    echo -n " (resolv.conf)"
+    c 0 cp -p ${resolv} $TMPDIR/var-copy/db/resolv.conf
+   fi
+  echo -n " (host.random)"
+  c 0 ln -s /flash/etc/host.random $TMPDIR/var-copy/db/host.random
+  c 0 tar cf $tmpmnt/$i.tar -C $TMPDIR/var-copy .
   else
    c 0 tar cf $tmpmnt/$i.tar -C $distloc/$i .
   fi
